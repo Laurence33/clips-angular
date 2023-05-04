@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
-
+import IUser from 'src/app/models/user.model';
+import {AuthService} from 'src/app/services/auth.service';
 @Component({
   selector: 'app-register',
   templateUrl: './register.component.html',
@@ -10,11 +11,12 @@ export class RegisterComponent {
   showAlert = false;
   alertMsg = 'Please wait! Your account is being created.';
   alertColor = 'blue';
+  inSubmission = false;
 
   registerForm = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.minLength(3)]),
     email: new FormControl('', [Validators.required, Validators.email]),
-    age: new FormControl('', [
+    age: new FormControl<number | null>(null, [
       Validators.required,
       Validators.min(18),
       Validators.max(120),
@@ -33,10 +35,35 @@ export class RegisterComponent {
     ]),
   });
 
-  register() {
-    console.log('Submitted:', this.registerForm.value);
+  constructor(private authService: AuthService) {}
+
+  async register() {
+    this.inSubmission = true;
+
+    console.log('Submitted:',  this.registerForm.value);
+
     this.showAlert = true;
     this.alertMsg = 'Please wait! Your account is being created.';
     this.alertColor = 'blue';
+
+    try {
+      // do not pass the object directly, initialize a new object
+      await this.authService.register({
+        name: this.registerForm.value.name!,
+        email: this.registerForm.value.email!,
+        age: this.registerForm.value.age!,
+        phone: this.registerForm.value.phone!,
+        password: this.registerForm.value.password!
+      });
+      console.log('From component', this.registerForm.value);
+      this.alertMsg = 'Registration Successful!';
+      this.alertColor = 'green';
+    }catch(err: any){
+      this.alertMsg = err as string;
+      this.alertColor = 'red';
+    }
+
+    this.inSubmission = false;
+
   }
 }
