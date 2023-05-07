@@ -1,12 +1,12 @@
 import { ModalService } from './../../services/modal.service';
-import { Component, OnInit, Input, ElementRef } from '@angular/core';
+import { Component, OnInit, Input, ElementRef, OnDestroy } from '@angular/core';
 
 @Component({
   selector: 'app-modal',
   templateUrl: './modal.component.html',
   styleUrls: ['./modal.component.scss'],
 })
-export class ModalComponent implements OnInit {
+export class ModalComponent implements OnInit, OnDestroy {
   @Input() modalId: string = '';
 
   constructor(public modalService: ModalService, public el: ElementRef) {}
@@ -16,7 +16,9 @@ export class ModalComponent implements OnInit {
     console.log(this.el);
     document.body.appendChild(this.el.nativeElement);
   }
-
+  ngOnDestroy() {
+    document.body.removeChild(this.el.nativeElement);
+  }
   isModalOpen() {
     return this.modalService.isModalOpen(this.modalId);
   }

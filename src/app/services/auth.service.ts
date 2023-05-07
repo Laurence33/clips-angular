@@ -1,16 +1,28 @@
 import { Injectable } from '@angular/core';
-import { Auth, createUserWithEmailAndPassword, UserCredential } from '@angular/fire/auth';
+import { Auth, createUserWithEmailAndPassword, UserCredential, authState, signInWithEmailAndPassword, signOut } from '@angular/fire/auth';
 import { Firestore } from '@angular/fire/firestore';
+import { } from '@firebase/auth';
 import { doc, DocumentReference, setDoc } from '@firebase/firestore';
+import { Observable } from 'rxjs';
+import {delay, map} from 'rxjs/operators';
 import IUser from 'src/app/models/user.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  public isAuthenticated$: Observable<boolean>;
+  public isAuthenticatedWithDelay$: Observable<boolean>;
+
   constructor(
       private auth: Auth, private fs: Firestore
-  ) { }
+  ) {
+   // this.auth = getAuth();
+    this.isAuthenticated$ = authState(this.auth).pipe(map(user => !!user));
+    this.isAuthenticatedWithDelay$ = this.isAuthenticated$.pipe(
+      delay(1000)
+    );
+  }
 
 
   async register(values: IUser) {
@@ -34,10 +46,29 @@ export class AuthService {
     }
   }
 
+  async login(email: string, password: string) {
+    try{
+      const userCred = await signInWithEmailAndPassword(this.auth, email, password);
+    }catch(ex: any){
+      console.log('Error on auth service:', ex);
+     throw this.adaptError(ex.code);
+    }
+  }
+
+  async logout() {
+    return signOut(this.auth);
+  }
+
   adaptError(errCode: string): string{
     switch(errCode){
       case 'auth/email-already-in-use':
         return "Email already in use.";
+      case 'auth/user-not-found':
+        return 'Email or password incorrect';
+      case 'auth/wrong-password':
+        return 'Email or password incorrect';
+      case 'auth/network-request-failed':
+        return 'Please check your internet connection';
       default:
         return "Unknown error occurred";
     }
