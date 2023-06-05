@@ -97,6 +97,16 @@
             ],
             "scripts": []
           }
+        },
+        "deploy": {
+          "builder": "@angular/fire:deploy",
+          "options": {
+            "prerender": false,
+            "ssr": false,
+            "browserTarget": "clips:build:production",
+            "firebaseProject": "clipz-2b553",
+            "firebaseHostingSite": "clipz-2b553"
+          }
         }
       }
     }

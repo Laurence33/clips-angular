@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "clipz-2b553": {
+      "hosting": {
+        "clips": [
+          "clipz-2b553"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "clipz-2b553"
+  }
+}
