@@ -6,9 +6,10 @@ import {
   authState,
   signInWithEmailAndPassword,
   signOut,
-  fetchSignInMethodsForEmail
+  fetchSignInMethodsForEmail,
 } from '@angular/fire/auth';
 import { Firestore } from '@angular/fire/firestore';
+import { Router } from '@angular/router';
 import {} from '@firebase/auth';
 import { doc, DocumentReference, setDoc } from '@firebase/firestore';
 import { Observable } from 'rxjs';
@@ -22,7 +23,11 @@ export class AuthService {
   public isAuthenticated$: Observable<boolean>;
   public isAuthenticatedWithDelay$: Observable<boolean>;
 
-  constructor(private auth: Auth, private fs: Firestore) {
+  constructor(
+    private auth: Auth,
+    private fs: Firestore,
+    private router: Router
+  ) {
     // this.auth = getAuth();
     this.isAuthenticated$ = authState(this.auth).pipe(map((user) => !!user));
     this.isAuthenticatedWithDelay$ = this.isAuthenticated$.pipe(delay(1000));
@@ -66,19 +71,21 @@ export class AuthService {
       throw this.adaptError(ex.code);
     }
   }
+  async logout(event?: Event) {
+    if (event) event.preventDefault();
 
-  async logout() {
-    return signOut(this.auth);
+    await signOut(this.auth);
+    await this.router.navigateByUrl('/');
   }
 
-  async emailExists(email: string){
-    try{
+  async emailExists(email: string) {
+    try {
       const res = await fetchSignInMethodsForEmail(this.auth, email);
-      console.log('fetch Sign in methods result:',res);
-      if(res.length){
+      console.log('fetch Sign in methods result:', res);
+      if (res.length) {
         return true;
       }
-    }catch(ex: any){
+    } catch (ex: any) {
       throw this.adaptError(ex.code);
     }
     return false;
