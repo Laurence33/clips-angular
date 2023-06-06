@@ -42,9 +42,13 @@ export class UploadComponent {
       this.storage,
       `/clips/${this.title.value + Date.now()}.mp4`
     );
-    uploadBytes(fileRef, this.file!).then((snapshot) => {
-      console.log('upload completed!');
-    });
+    uploadBytes(fileRef, this.file!)
+      .then((snapshot) => {
+        console.log('upload completed!');
+      })
+      .catch((err) => {
+        console.log(err.code);
+      });
   }
 
   async storeFile(event: Event) {
