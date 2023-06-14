@@ -1,5 +1,8 @@
 <!-- Main Content -->
 <section class="container mx-auto my-8 bg-secondary p-6">
+  <app-alert *ngIf="showAlert" [color]="alertColor">{{
+    alertMessage
+  }}</app-alert>
   <div class="rounded relative flex flex-col">
     <div class="font-bold mb-6">Upload Video</div>
 
@@ -47,8 +50,13 @@
 
         <div class="mt-4 text-right">
           <button
+            [disabled]="inSubmission"
+            [ngClass]="{
+              'opacity-50': inSubmission,
+              'hover:bg-indigo-700': inSubmission
+            }"
             type="submit"
-            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
+            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm rounded-md text-white bg-indigo-600 focus:outline-none"
           >
             Publish
           </button>

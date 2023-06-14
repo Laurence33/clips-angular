@@ -16,6 +16,11 @@ export class UploadComponent {
   isVideoReady = false;
   file: File | null = null;
 
+  alertMessage = '';
+  alertColor = 'blue';
+  showAlert = false;
+  inSubmission = false;
+
   title = new FormControl('', {
     validators: [Validators.required, Validators.minLength(3)],
     nonNullable: true,
@@ -35,7 +40,9 @@ export class UploadComponent {
     if (this.uploadForm.invalid) {
       return;
     }
-
+    this.inSubmission = true;
+    // Alert
+    this.showInProgressAlert('Uploading your video, please wait...');
     // Create a reference to target remote file
     console.log('Starting upload...');
     const fileRef = ref(
@@ -45,12 +52,43 @@ export class UploadComponent {
     uploadBytes(fileRef, this.file!)
       .then((snapshot) => {
         console.log('upload completed!');
+        this.showSuccessAlert('Upload complete!');
+        this.resetFormValues();
+        this.inSubmission = false;
+        // reset alert after 3 seconds
+        setTimeout(() => {
+          this.resetAlert();
+        }, 3000);
       })
       .catch((err) => {
         console.log(err.code);
+        this.showErrorAlert('Something went wrong during the upload.');
+        this.inSubmission = false;
       });
   }
-
+  resetFormValues() {
+    this.uploadForm.reset();
+  }
+  showErrorAlert(message: string) {
+    this.showAlert = true;
+    this.alertMessage = message;
+    this.alertColor = 'red';
+  }
+  showSuccessAlert(message: string) {
+    this.showAlert = true;
+    this.alertMessage = message;
+    this.alertColor = 'green';
+  }
+  showInProgressAlert(message: string) {
+    this.showAlert = true;
+    this.alertColor = 'blue';
+    this.alertMessage = message;
+  }
+  resetAlert() {
+    this.alertColor = 'blue';
+    this.alertMessage = '';
+    this.showAlert = false;
+  }
   async storeFile(event: Event) {
     this.isDragOver = false;
     this.file = (event as DragEvent).dataTransfer?.files.item(0) ?? null;
