@@ -2,9 +2,11 @@ import { Component } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import {
   FirebaseStorage,
+  getDownloadURL,
   getStorage,
   ref,
   uploadBytes,
+  uploadBytesResumable,
 } from '@angular/fire/storage';
 @Component({
   selector: 'app-upload',
@@ -20,6 +22,7 @@ export class UploadComponent {
   alertColor = 'blue';
   showAlert = false;
   inSubmission = false;
+  uploadProgress = 0;
 
   title = new FormControl('', {
     validators: [Validators.required, Validators.minLength(3)],
@@ -49,25 +52,46 @@ export class UploadComponent {
       this.storage,
       `/clips/${this.title.value + Date.now()}.mp4`
     );
-    uploadBytes(fileRef, this.file!)
-      .then((snapshot) => {
+    const uploadTask = uploadBytesResumable(fileRef, this.file!);
+    uploadTask.on(
+      'state_changed',
+      (snapshot) => {
+        this.uploadProgress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        switch (snapshot.state) {
+          case 'paused':
+            console.log('Upload is paused');
+            break;
+          case 'running':
+            console.log('Upload is running');
+            break;
+        }
+      },
+      (err) => {
+        console.log(err.code);
+        this.showErrorAlert('Something went wrong during the upload.');
+        this.inSubmission = false;
+      },
+      () => {
         console.log('upload completed!');
         this.showSuccessAlert('Upload complete!');
         this.resetFormValues();
         this.inSubmission = false;
+
+        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+          console.log('File available at', downloadURL);
+        });
+
         // reset alert after 3 seconds
         setTimeout(() => {
           this.resetAlert();
         }, 3000);
-      })
-      .catch((err) => {
-        console.log(err.code);
-        this.showErrorAlert('Something went wrong during the upload.');
-        this.inSubmission = false;
-      });
+      }
+    );
   }
   resetFormValues() {
     this.uploadForm.reset();
+    this.isVideoReady = false;
   }
   showErrorAlert(message: string) {
     this.showAlert = true;

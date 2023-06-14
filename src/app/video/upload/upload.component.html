@@ -1,8 +1,11 @@
 <!-- Main Content -->
 <section class="container mx-auto my-8 bg-secondary p-6">
-  <app-alert *ngIf="showAlert" [color]="alertColor">{{
-    alertMessage
-  }}</app-alert>
+  <app-alert *ngIf="showAlert" [color]="alertColor">
+    <p>
+      {{ alertMessage }}
+    </p>
+    <p *ngIf="inSubmission">{{ uploadProgress | percent }}</p>
+  </app-alert>
   <div class="rounded relative flex flex-col">
     <div class="font-bold mb-6">Upload Video</div>
 
