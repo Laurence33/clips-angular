@@ -45,7 +45,7 @@ export class UploadComponent {
     }
     this.inSubmission = true;
     // Alert
-    this.showInProgressAlert('Uploading your video, please wait...');
+    this.showInProgressAlert('Uploading your clip, please wait...');
     // Create a reference to target remote file
     console.log('Starting upload...');
     const fileRef = ref(
@@ -69,12 +69,14 @@ export class UploadComponent {
       },
       (err) => {
         console.log(err.code);
-        this.showErrorAlert('Something went wrong during the upload.');
+        this.showErrorAlert('Something went wrong, please try again later.');
         this.inSubmission = false;
       },
       () => {
         console.log('upload completed!');
-        this.showSuccessAlert('Upload complete!');
+        this.showSuccessAlert(
+          'Upload success! You video is now ready to be shared to the world.'
+        );
         this.resetFormValues();
         this.inSubmission = false;
 
