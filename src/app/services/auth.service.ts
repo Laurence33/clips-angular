@@ -7,6 +7,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   fetchSignInMethodsForEmail,
+  updateProfile,
 } from '@angular/fire/auth';
 import { Firestore } from '@angular/fire/firestore';
 import {} from '@firebase/auth';
@@ -64,6 +65,10 @@ export class AuthService {
       ) as DocumentReference<IUser>;
       await setDoc(userDocRef, values);
       // we cannot update User properties now using userCred.user.updateProfile();
+      await updateProfile(this.auth.currentUser!, {
+        displayName: values.name,
+        // photoURL: 'https://example.com/jane-q-user/profile.jpg',
+      });
     } catch (err: any) {
       console.log('Error on auth service', err);
       throw this.adaptError(err.code);
