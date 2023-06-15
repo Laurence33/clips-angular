@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import {
   FirebaseStorage,
@@ -7,6 +7,7 @@ import {
   ref,
   uploadBytes,
   uploadBytesResumable,
+  UploadTask,
 } from '@angular/fire/storage';
 import { User, getAuth } from '@angular/fire/auth';
 import { IClip } from 'src/app/models/clip.model';
@@ -16,7 +17,7 @@ import { ClipService } from 'src/app/services/clip.service';
   templateUrl: './upload.component.html',
   styleUrls: ['./upload.component.scss'],
 })
-export class UploadComponent {
+export class UploadComponent implements OnDestroy {
   isDragOver = false;
   isVideoReady = false;
   file: File | null = null;
@@ -26,6 +27,7 @@ export class UploadComponent {
   showAlert = false;
   inSubmission = false;
   uploadProgress = 0;
+  uploadTask: UploadTask | null = null;
 
   title = new FormControl('', {
     validators: [Validators.required, Validators.minLength(3)],
@@ -45,6 +47,12 @@ export class UploadComponent {
     this.user = auth.currentUser!;
     console.log(this.user);
   }
+
+  ngOnDestroy(): void {
+    //Called once, before the instance is destroyed.
+    //Add 'implements OnDestroy' to the class.
+    this.uploadTask?.cancel();
+  }
   async submit(values: any) {
     console.log(values);
     console.log(this.uploadForm);
@@ -59,8 +67,8 @@ export class UploadComponent {
     console.log('Starting upload...');
     const clipFilename = this.title.value + Date.now();
     const fileRef = ref(this.storage, `/clips/${clipFilename}.mp4`);
-    const uploadTask = uploadBytesResumable(fileRef, this.file!);
-    uploadTask.on(
+    this.uploadTask = uploadBytesResumable(fileRef, this.file!);
+    this.uploadTask.on(
       'state_changed',
       (snapshot) => {
         this.uploadProgress = snapshot.bytesTransferred / snapshot.totalBytes;
@@ -81,7 +89,7 @@ export class UploadComponent {
       },
       async () => {
         console.log('complete');
-        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        const downloadURL = await getDownloadURL(this.uploadTask!.snapshot.ref);
         const clip: IClip = {
           uid: this.user.uid,
           displayName: this.user.displayName!,
