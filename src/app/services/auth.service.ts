@@ -9,9 +9,12 @@ import {
   fetchSignInMethodsForEmail,
   updateProfile,
 } from '@angular/fire/auth';
-import { Firestore } from '@angular/fire/firestore';
-import {} from '@firebase/auth';
-import { doc, DocumentReference, setDoc } from '@firebase/firestore';
+import {
+  Firestore,
+  doc,
+  DocumentReference,
+  setDoc,
+} from '@angular/fire/firestore';
 import { Observable, of } from 'rxjs';
 import { delay, map, filter, switchMap } from 'rxjs/operators';
 import IUser from 'src/app/models/user.model';
