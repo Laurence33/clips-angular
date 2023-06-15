@@ -132,7 +132,9 @@ export class UploadComponent {
   }
   async storeFile(event: Event) {
     this.isDragOver = false;
-    this.file = (event as DragEvent).dataTransfer?.files.item(0) ?? null;
+    this.file = (event as DragEvent).dataTransfer?.files.item(0)
+      ? (event as DragEvent).dataTransfer?.files.item(0) ?? null
+      : (event.target as HTMLInputElement).files?.item(0) ?? null;
     console.log(this.file);
 
     if (!this.file || this.file.type !== 'video/mp4') {
