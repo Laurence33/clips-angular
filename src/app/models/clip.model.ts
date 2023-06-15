@@ -1,3 +1,5 @@
+import { Timestamp } from '@angular/fire/firestore';
+
 export interface IClip {
   id?: string;
   uid: string;
@@ -5,4 +7,5 @@ export interface IClip {
   title: string;
   filename: string;
   fileURL: string;
+  timestamp: Timestamp;
 }

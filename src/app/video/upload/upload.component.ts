@@ -9,9 +9,11 @@ import {
   uploadBytesResumable,
   UploadTask,
 } from '@angular/fire/storage';
+import { Timestamp } from '@angular/fire/firestore';
 import { User, getAuth } from '@angular/fire/auth';
 import { IClip } from 'src/app/models/clip.model';
 import { ClipService } from 'src/app/services/clip.service';
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-upload',
   templateUrl: './upload.component.html',
@@ -40,7 +42,7 @@ export class UploadComponent implements OnDestroy {
   storage: FirebaseStorage;
 
   user: User;
-  constructor(private clipService: ClipService) {
+  constructor(private clipService: ClipService, private router: Router) {
     // Create a root reference
     this.storage = getStorage();
     const auth = getAuth();
@@ -96,9 +98,11 @@ export class UploadComponent implements OnDestroy {
           title: this.title.value,
           filename: `${clipFilename}.mp4`,
           fileURL: downloadURL,
+          timestamp: Timestamp.now(),
         };
         // Store to Firestore
-        await this.clipService.createClip(clip);
+        const newClip = await this.clipService.createClip(clip);
+        console.log(newClip);
 
         this.resetAlert();
         this.showSuccessAlert(
@@ -110,6 +114,7 @@ export class UploadComponent implements OnDestroy {
         // reset alert after 3 seconds
         setTimeout(() => {
           this.resetAlert();
+          this.router.navigate(['clip', newClip.id]);
         }, 3000);
       }
     );
