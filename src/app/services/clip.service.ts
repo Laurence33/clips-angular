@@ -4,8 +4,10 @@ import {
   collection,
   collectionData,
   CollectionReference,
+  doc,
   Firestore,
   query,
+  updateDoc,
   where,
 } from '@angular/fire/firestore';
 import { IClip } from '../models/clip.model';
@@ -41,5 +43,10 @@ export class ClipService {
       return collectionData(qry, { idField: 'id' });
     }
     return of([]) as Observable<IClip[]>;
+  }
+
+  public updateClip(clipId: string, title: string) {
+    const docRef = doc(this.firestore, 'clips/' + clipId);
+    return updateDoc(docRef, { title: title });
   }
 }
