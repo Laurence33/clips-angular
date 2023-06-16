@@ -7,6 +7,7 @@ import {
   deleteDoc,
   doc,
   Firestore,
+  orderBy,
   query,
   updateDoc,
   where,
@@ -14,7 +15,7 @@ import {
 import { IClip } from '../models/clip.model';
 import { Auth } from '@angular/fire/auth';
 import { getAuth } from '@firebase/auth';
-import { Observable, of } from 'rxjs';
+import { Observable, of, switchMap } from 'rxjs';
 import { deleteObject, getStorage, ref, Storage } from '@angular/fire/storage';
 
 @Injectable({
@@ -40,14 +41,19 @@ export class ClipService {
     return addDoc(this.clipsCollection, data);
   }
 
-  public getUserClips() {
+  public getUserClips(sort$: Observable<string>) {
     const user = this.auth.currentUser;
     if (user) {
-      const qry = query(
-        this.clipsCollection,
-        where('uid', '==', this.auth.currentUser!.uid)
+      return sort$.pipe(
+        switchMap((sort) => {
+          const qry = query(
+            this.clipsCollection,
+            where('uid', '==', this.auth.currentUser!.uid),
+            orderBy('timestamp', sort === '1' ? 'desc' : 'asc')
+          );
+          return collectionData(qry, { idField: 'id' });
+        })
       );
-      return collectionData(qry, { idField: 'id' });
     }
     return of([]) as Observable<IClip[]>;
   }
