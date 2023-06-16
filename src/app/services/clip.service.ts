@@ -4,6 +4,7 @@ import {
   collection,
   collectionData,
   CollectionReference,
+  deleteDoc,
   doc,
   Firestore,
   query,
@@ -14,6 +15,7 @@ import { IClip } from '../models/clip.model';
 import { Auth } from '@angular/fire/auth';
 import { getAuth } from '@firebase/auth';
 import { Observable, of } from 'rxjs';
+import { deleteObject, getStorage, ref, Storage } from '@angular/fire/storage';
 
 @Injectable({
   providedIn: 'root',
@@ -21,12 +23,17 @@ import { Observable, of } from 'rxjs';
 export class ClipService {
   clipsCollection: CollectionReference<IClip>;
 
-  constructor(private firestore: Firestore, private auth: Auth) {
+  constructor(
+    private firestore: Firestore,
+    private auth: Auth,
+    private storage: Storage
+  ) {
     this.clipsCollection = collection(
       this.firestore,
       '/clips'
     ) as CollectionReference<IClip>;
     this.auth = getAuth();
+    this.storage = getStorage();
   }
 
   public createClip(data: IClip) {
@@ -48,5 +55,21 @@ export class ClipService {
   public updateClip(clipId: string, title: string) {
     const docRef = doc(this.firestore, 'clips/' + clipId);
     return updateDoc(docRef, { title: title });
+  }
+
+  async deleteClip(clip: IClip): Promise<boolean> {
+    try {
+      // Create a reference to the file to delete
+      const desertRef = ref(this.storage, 'clips/' + clip.filename);
+      // Delete the file
+      await deleteObject(desertRef);
+      // Firestore document reference
+      const docRef = doc(this.firestore, 'clips/' + clip.id);
+      // Delete firestore document
+      await deleteDoc(docRef);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }
