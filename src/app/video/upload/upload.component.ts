@@ -14,6 +14,8 @@ import { User, getAuth } from '@angular/fire/auth';
 import { IClip } from 'src/app/models/clip.model';
 import { ClipService } from 'src/app/services/clip.service';
 import { Router } from '@angular/router';
+import { FfmpegService } from 'src/app/services/ffmpeg.service';
+
 @Component({
   selector: 'app-upload',
   templateUrl: './upload.component.html',
@@ -42,12 +44,17 @@ export class UploadComponent implements OnDestroy {
   storage: FirebaseStorage;
 
   user: User;
-  constructor(private clipService: ClipService, private router: Router) {
+  constructor(
+    private clipService: ClipService,
+    private router: Router,
+    public ffmpegService: FfmpegService
+  ) {
     // Create a root reference
     this.storage = getStorage();
     const auth = getAuth();
     this.user = auth.currentUser!;
     console.log(this.user);
+    this.ffmpegService.init();
   }
 
   ngOnDestroy(): void {
