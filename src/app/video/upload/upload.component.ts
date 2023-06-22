@@ -36,6 +36,7 @@ export class UploadComponent implements OnDestroy {
   selectedScreenshot = '';
   screenshotTask: UploadTask | null = null;
 
+  newClipId = '';
   title = new FormControl('', {
     validators: [Validators.required, Validators.minLength(3)],
     nonNullable: true,
@@ -85,11 +86,13 @@ export class UploadComponent implements OnDestroy {
     );
     const screenshotRef = ref(this.storage, `screenshots/${clipFilename}.png`);
 
+    const totalUploadSize = this.file!.size + screenshotBlob.size;
+
     this.uploadTask = uploadBytesResumable(fileRef, this.file!);
     this.uploadTask.on(
       'state_changed',
       (snapshot) => {
-        this.uploadProgress = snapshot.bytesTransferred / snapshot.totalBytes;
+        this.uploadProgress = snapshot.bytesTransferred / totalUploadSize;
         switch (snapshot.state) {
           case 'paused':
             console.log('Upload is paused');
@@ -119,7 +122,33 @@ export class UploadComponent implements OnDestroy {
         // Store to Firestore
         const newClip = await this.clipService.createClip(clip);
         console.log(newClip);
-
+        this.newClipId = newClip.id;
+      }
+    );
+    this.screenshotTask = uploadBytesResumable(screenshotRef, screenshotBlob);
+    this.screenshotTask.on(
+      'state_changed',
+      (snapshot) => {
+        this.uploadProgress =
+          totalUploadSize -
+          snapshot.totalBytes +
+          snapshot.bytesTransferred / totalUploadSize;
+        switch (snapshot.state) {
+          case 'paused':
+            console.log('Upload is paused');
+            break;
+          case 'running':
+            console.log('Upload is running');
+            break;
+        }
+      },
+      (err) => {
+        console.log(err);
+        this.showErrorAlert('Could not upload screenshot.');
+        this.inSubmission = false;
+        this.uploadForm.enable();
+      },
+      async () => {
         this.resetAlert();
         this.showSuccessAlert(
           'Upload success! You video is now ready to be shared to the world.'
@@ -130,11 +159,10 @@ export class UploadComponent implements OnDestroy {
         // reset alert after 3 seconds
         setTimeout(() => {
           this.resetAlert();
-          this.router.navigate(['clip', newClip.id]);
+          this.router.navigate(['clip', this.newClipId]);
         }, 3000);
       }
     );
-    this.screenshotTask = uploadBytesResumable(screenshotRef, screenshotBlob);
   }
   resetFormValues() {
     this.uploadForm.reset();
