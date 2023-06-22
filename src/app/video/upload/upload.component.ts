@@ -161,6 +161,8 @@ export class UploadComponent implements OnDestroy {
       return;
     }
 
+    await this.ffmpegService.getScreenshots(this.file);
+
     this.isVideoReady = true;
     this.title.setValue(this.file.name.replace(/\.[^/.]+$/, ''));
   }
