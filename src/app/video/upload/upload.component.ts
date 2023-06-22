@@ -34,6 +34,7 @@ export class UploadComponent implements OnDestroy {
   uploadTask: UploadTask | null = null;
   screenshots: string[] = [];
   selectedScreenshot = '';
+  screenshotTask: UploadTask | null = null;
 
   title = new FormControl('', {
     validators: [Validators.required, Validators.minLength(3)],
@@ -78,6 +79,12 @@ export class UploadComponent implements OnDestroy {
     console.log('Starting upload...');
     const clipFilename = this.title.value + Date.now();
     const fileRef = ref(this.storage, `/clips/${clipFilename}.mp4`);
+
+    const screenshotBlob = await this.ffmpegService.blobFromURL(
+      this.selectedScreenshot
+    );
+    const screenshotRef = ref(this.storage, `screenshots/${clipFilename}.png`);
+
     this.uploadTask = uploadBytesResumable(fileRef, this.file!);
     this.uploadTask.on(
       'state_changed',
@@ -127,6 +134,7 @@ export class UploadComponent implements OnDestroy {
         }, 3000);
       }
     );
+    this.screenshotTask = uploadBytesResumable(screenshotRef, screenshotBlob);
   }
   resetFormValues() {
     this.uploadForm.reset();
