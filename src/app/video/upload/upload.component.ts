@@ -32,6 +32,7 @@ export class UploadComponent implements OnDestroy {
   inSubmission = false;
   uploadProgress = 0;
   uploadTask: UploadTask | null = null;
+  screenshots: string[] = [];
 
   title = new FormControl('', {
     validators: [Validators.required, Validators.minLength(3)],
@@ -161,7 +162,7 @@ export class UploadComponent implements OnDestroy {
       return;
     }
 
-    await this.ffmpegService.getScreenshots(this.file);
+    this.screenshots = await this.ffmpegService.getScreenshots(this.file);
 
     this.isVideoReady = true;
     this.title.setValue(this.file.name.replace(/\.[^/.]+$/, ''));
