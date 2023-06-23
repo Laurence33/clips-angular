@@ -9,10 +9,12 @@ import videojs from 'video.js';
 export class ClipComponent implements OnInit {
   id: string = '';
   @ViewChild('videoPlayer', { static: true }) target?: ElementRef;
+  player?: videojs.Player;
 
   constructor(private route: ActivatedRoute) {}
 
   ngOnInit() {
+    this.player = videojs(this.target?.nativeElement);
     // this.id = this.route.snapshot.params['id'];
     this.route.params.subscribe((params: Params) => {
       this.id = params['id'];
