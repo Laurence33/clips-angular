@@ -36,7 +36,6 @@ export class UploadComponent implements OnDestroy {
   selectedScreenshot = '';
   screenshotTask: UploadTask | null = null;
 
-  newClipId = '';
   title = new FormControl('', {
     validators: [Validators.required, Validators.minLength(3)],
     nonNullable: true,
@@ -92,15 +91,9 @@ export class UploadComponent implements OnDestroy {
     this.uploadTask.on(
       'state_changed',
       (snapshot) => {
-        this.uploadProgress = snapshot.bytesTransferred / totalUploadSize;
-        switch (snapshot.state) {
-          case 'paused':
-            console.log('Upload is paused');
-            break;
-          case 'running':
-            console.log('Upload is running');
-            break;
-        }
+        this.uploadProgress =
+          (totalUploadSize - snapshot.totalBytes + snapshot.bytesTransferred) /
+          totalUploadSize;
       },
       (err) => {
         console.log(err);
@@ -109,58 +102,61 @@ export class UploadComponent implements OnDestroy {
         this.uploadForm.enable();
       },
       async () => {
-        console.log('complete');
+        console.log('video upload complete');
         const downloadURL = await getDownloadURL(this.uploadTask!.snapshot.ref);
-        const clip: IClip = {
-          uid: this.user.uid,
-          displayName: this.user.displayName!,
-          title: this.title.value,
-          filename: `${clipFilename}.mp4`,
-          fileURL: downloadURL,
-          timestamp: Timestamp.now(),
-        };
-        // Store to Firestore
-        const newClip = await this.clipService.createClip(clip);
-        console.log(newClip);
-        this.newClipId = newClip.id;
-      }
-    );
-    this.screenshotTask = uploadBytesResumable(screenshotRef, screenshotBlob);
-    this.screenshotTask.on(
-      'state_changed',
-      (snapshot) => {
-        this.uploadProgress =
-          totalUploadSize -
-          snapshot.totalBytes +
-          snapshot.bytesTransferred / totalUploadSize;
-        switch (snapshot.state) {
-          case 'paused':
-            console.log('Upload is paused');
-            break;
-          case 'running':
-            console.log('Upload is running');
-            break;
-        }
-      },
-      (err) => {
-        console.log(err);
-        this.showErrorAlert('Could not upload screenshot.');
-        this.inSubmission = false;
-        this.uploadForm.enable();
-      },
-      async () => {
-        this.resetAlert();
-        this.showSuccessAlert(
-          'Upload success! You video is now ready to be shared to the world.'
+        this.screenshotTask = uploadBytesResumable(
+          screenshotRef,
+          screenshotBlob
         );
-        this.resetFormValues();
-        this.inSubmission = false;
-        this.uploadForm.enable();
-        // reset alert after 3 seconds
-        setTimeout(() => {
-          this.resetAlert();
-          this.router.navigate(['clip', this.newClipId]);
-        }, 3000);
+        this.screenshotTask.on(
+          'state_changed',
+          (snapshot) => {
+            this.uploadProgress =
+              (totalUploadSize -
+                snapshot.totalBytes +
+                snapshot.bytesTransferred) /
+              totalUploadSize;
+          },
+          (err) => {
+            console.log(err);
+            this.showErrorAlert('Could not upload screenshot.');
+            this.inSubmission = false;
+            this.uploadForm.enable();
+          },
+          async () => {
+            console.log('Complete screenshot upload');
+
+            const screenshotDownloadURL = await getDownloadURL(
+              this.screenshotTask!.snapshot.ref
+            );
+            const clip: IClip = {
+              uid: this.user.uid,
+              displayName: this.user.displayName!,
+              title: this.title.value,
+              filename: `${clipFilename}.mp4`,
+              fileURL: downloadURL,
+              timestamp: Timestamp.now(),
+              screenshotURL: screenshotDownloadURL,
+            };
+            // Store to Firestore
+            const newClip = await this.clipService.createClip(clip);
+            console.log(newClip);
+
+            this.resetAlert();
+            this.showSuccessAlert(
+              'Upload success! You video is now ready to be shared to the world.'
+            );
+            this.resetFormValues();
+            this.inSubmission = false;
+            this.uploadForm.enable();
+
+            // reset alert after 3 seconds
+            setTimeout(() => {
+              this.resetAlert();
+              this.router.navigate(['clip', newClip.id]);
+            }, 3000);
+          }
+        );
       }
     );
   }
