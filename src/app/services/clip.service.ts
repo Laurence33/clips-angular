@@ -9,9 +9,12 @@ import {
   docData,
   Firestore,
   getDoc,
+  getDocs,
   limit,
   orderBy,
   query,
+  QueryDocumentSnapshot,
+  startAfter,
   startAt,
   updateDoc,
   where,
@@ -29,7 +32,7 @@ export class ClipService {
   clipsCollection: CollectionReference<IClip>;
   pageClips: IClip[] = [];
   pendingRequest = false;
-
+  lastItem: QueryDocumentSnapshot<IClip> | null = null;
   constructor(
     private firestore: Firestore,
     private auth: Auth,
@@ -97,17 +100,10 @@ export class ClipService {
     if (this.pendingRequest) return;
 
     this.pendingRequest = true;
-
-    const { length } = this.pageClips;
     const addToQry = [];
 
-    if (length) {
-      const lastDocId = this.pageClips[length - 1].id;
-      const lastDocRef = doc(this.firestore, 'clips/' + lastDocId);
-      const lastDoc = await firstValueFrom(
-        docData(lastDocRef, { idField: 'id' })
-      );
-      addToQry.push(startAt(lastDoc));
+    if (this.lastItem) {
+      addToQry.push(startAfter(this.lastItem));
     }
     const qry = query(
       this.clipsCollection,
@@ -115,8 +111,14 @@ export class ClipService {
       limit(6),
       ...addToQry
     );
-    const result = await firstValueFrom(collectionData(qry, { idField: 'id' }));
-    this.pageClips = [...this.pageClips, ...result];
+    console.log('qry', qry);
+    const result = await getDocs(qry);
+    if (result.docs.length) {
+      this.lastItem = result.docs[result.docs.length - 1];
+    }
+    result.docs.map((doc) =>
+      this.pageClips.push({ id: doc.id, ...doc.data() })
+    );
 
     this.pendingRequest = false;
     return result;
