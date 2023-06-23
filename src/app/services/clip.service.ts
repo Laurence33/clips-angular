@@ -125,4 +125,9 @@ export class ClipService {
     //1. bind() if necessary
     //2. call()
   }
+
+  resetClips() {
+    this.pageClips = [];
+    this.lastItem = null;
+  }
 }
