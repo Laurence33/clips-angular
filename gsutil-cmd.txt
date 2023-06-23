@@ -1,1 +1,7 @@
+#Install gsutil https://cloud.google.com/storage/docs/gsutil_install
+
+(New-Object Net.WebClient).DownloadFile("https://dl.google.com/dl/cloudsdk/channels/rapid/GoogleCloudSDKInstaller.exe", "$env:Temp\GoogleCloudSDKInstaller.exe")
+& $env:Temp\GoogleCloudSDKInstaller.exe
+
+# upload the cors config from the file
 gsutil cors set cors.json <cloud storage url>
