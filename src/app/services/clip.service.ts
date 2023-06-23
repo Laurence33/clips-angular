@@ -7,6 +7,7 @@ import {
   deleteDoc,
   doc,
   docData,
+  DocumentReference,
   Firestore,
   getDoc,
   getDocs,
@@ -22,13 +23,19 @@ import {
 import { IClip } from '../models/clip.model';
 import { Auth } from '@angular/fire/auth';
 import { getAuth } from '@firebase/auth';
-import { firstValueFrom, Observable, of, switchMap } from 'rxjs';
+import { firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
 import { deleteObject, getStorage, ref, Storage } from '@angular/fire/storage';
+import {
+  Resolve,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot,
+  Router,
+} from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ClipService {
+export class ClipService implements Resolve<IClip | null> {
   clipsCollection: CollectionReference<IClip>;
   pageClips: IClip[] = [];
   pendingRequest = false;
@@ -36,7 +43,8 @@ export class ClipService {
   constructor(
     private firestore: Firestore,
     private auth: Auth,
-    private storage: Storage
+    private storage: Storage,
+    private router: Router
   ) {
     this.clipsCollection = collection(
       this.firestore,
@@ -129,5 +137,22 @@ export class ClipService {
   resetClips() {
     this.pageClips = [];
     this.lastItem = null;
+  }
+
+  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+    const id = route.params['id'];
+    const docRef = doc(
+      this.firestore,
+      'clips/' + id
+    ) as DocumentReference<IClip>;
+    return docData(docRef, { idField: 'id' }).pipe(
+      map((data) => {
+        if (!data) {
+          this.router.navigate(['/']);
+          return null;
+        }
+        return data;
+      })
+    );
   }
 }
