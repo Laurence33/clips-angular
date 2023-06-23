@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ClipService } from '../services/clip.service';
 
 @Component({
   selector: 'app-clips-list',
@@ -6,7 +7,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
   styleUrls: ['./clips-list.component.scss'],
 })
 export class ClipsListComponent implements OnInit, OnDestroy {
-  constructor() {}
+  constructor(private clipService: ClipService) {}
 
   ngOnInit(): void {
     window.addEventListener('scroll', this.handleScroll);

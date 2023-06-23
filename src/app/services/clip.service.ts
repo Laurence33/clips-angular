@@ -6,16 +6,20 @@ import {
   CollectionReference,
   deleteDoc,
   doc,
+  docData,
   Firestore,
+  getDoc,
+  limit,
   orderBy,
   query,
+  startAt,
   updateDoc,
   where,
 } from '@angular/fire/firestore';
 import { IClip } from '../models/clip.model';
 import { Auth } from '@angular/fire/auth';
 import { getAuth } from '@firebase/auth';
-import { Observable, of, switchMap } from 'rxjs';
+import { firstValueFrom, Observable, of, switchMap } from 'rxjs';
 import { deleteObject, getStorage, ref, Storage } from '@angular/fire/storage';
 
 @Injectable({
@@ -23,6 +27,8 @@ import { deleteObject, getStorage, ref, Storage } from '@angular/fire/storage';
 })
 export class ClipService {
   clipsCollection: CollectionReference<IClip>;
+  pageClips: IClip[] = [];
+  pendingRequest = false;
 
   constructor(
     private firestore: Firestore,
@@ -85,5 +91,36 @@ export class ClipService {
       console.log(e);
       return false;
     }
+  }
+
+  async getClips() {
+    if (this.pendingRequest) return;
+
+    this.pendingRequest = true;
+
+    const { length } = this.pageClips;
+    const addToQry = [];
+
+    if (length) {
+      const lastDocId = this.pageClips[length - 1].id;
+      const lastDocRef = doc(this.firestore, 'clips/' + lastDocId);
+      const lastDoc = await firstValueFrom(
+        docData(lastDocRef, { idField: 'id' })
+      );
+      addToQry.push(startAt(lastDoc));
+    }
+    const qry = query(
+      this.clipsCollection,
+      orderBy('timestamp', 'desc'),
+      limit(6),
+      ...addToQry
+    );
+    const result = await firstValueFrom(collectionData(qry, { idField: 'id' }));
+    this.pageClips = [...this.pageClips, ...result];
+
+    this.pendingRequest = false;
+    return result;
+    //1. bind() if necessary
+    //2. call()
   }
 }
