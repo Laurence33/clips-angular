@@ -9,4 +9,5 @@ export interface IClip {
   fileURL: string;
   timestamp: Timestamp;
   screenshotURL: string;
+  screenshotFilename: string;
 }

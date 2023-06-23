@@ -66,15 +66,23 @@ export class ClipService {
   async deleteClip(clip: IClip): Promise<boolean> {
     try {
       // Create a reference to the file to delete
-      const desertRef = ref(this.storage, 'clips/' + clip.filename);
+      const videoRef = ref(this.storage, 'clips/' + clip.filename);
       // Delete the file
-      await deleteObject(desertRef);
+      await deleteObject(videoRef);
+      // Create a reference to the file to delete
+      const screenshotRef = ref(
+        this.storage,
+        'screenshots/' + clip.screenshotFilename
+      );
+      // Delete the file
+      await deleteObject(screenshotRef);
       // Firestore document reference
       const docRef = doc(this.firestore, 'clips/' + clip.id);
       // Delete firestore document
       await deleteDoc(docRef);
       return true;
     } catch (e) {
+      console.log(e);
       return false;
     }
   }

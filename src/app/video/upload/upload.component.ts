@@ -137,6 +137,7 @@ export class UploadComponent implements OnDestroy {
               fileURL: downloadURL,
               timestamp: Timestamp.now(),
               screenshotURL: screenshotDownloadURL,
+              screenshotFilename: `${clipFilename}.png`,
             };
             // Store to Firestore
             const newClip = await this.clipService.createClip(clip);
