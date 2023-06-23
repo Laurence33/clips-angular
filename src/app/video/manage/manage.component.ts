@@ -55,4 +55,18 @@ export class ManageComponent implements OnInit {
       console.log('delete error');
     }
   }
+
+  async copyToClipboard($event: MouseEvent, id: string | undefined) {
+    $event.preventDefault();
+    $event.stopPropagation();
+
+    if (!id) {
+      return;
+    }
+
+    const url = `${location.origin}/clip/${id}`;
+    await navigator.clipboard.writeText(url);
+
+    alert('Link copied!');
+  }
 }
