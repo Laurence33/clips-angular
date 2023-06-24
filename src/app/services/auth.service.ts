@@ -56,11 +56,11 @@ export class AuthService {
         values.email!,
         values.password!
       );
-      console.log(userCred);
+      // console.log(userCred);
 
       // Remove the password before saving to Firestore
       if (values.password) delete values.password;
-      console.log('Deleted password', values);
+      // console.log('Deleted password', values);
 
       const userDocRef = doc(
         this.fs,
@@ -73,7 +73,7 @@ export class AuthService {
         // photoURL: 'https://example.com/jane-q-user/profile.jpg',
       });
     } catch (err: any) {
-      console.log('Error on auth service', err);
+      // console.log('Error on auth service', err);
       throw this.adaptError(err.code);
     }
   }
@@ -86,7 +86,7 @@ export class AuthService {
         password
       );
     } catch (ex: any) {
-      console.log('Error on auth service:', ex);
+      // console.log('Error on auth service:', ex);
       throw this.adaptError(ex.code);
     }
   }
@@ -101,7 +101,7 @@ export class AuthService {
   async emailExists(email: string) {
     try {
       const res = await fetchSignInMethodsForEmail(this.auth, email);
-      console.log('fetch Sign in methods result:', res);
+      // console.log('fetch Sign in methods result:', res);
       if (res.length) {
         return true;
       }

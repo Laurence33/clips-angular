@@ -119,7 +119,7 @@ export class ClipService implements Resolve<IClip | null> {
       limit(6),
       ...addToQry
     );
-    console.log('qry', qry);
+    // console.log('qry', qry);
     const result = await getDocs(qry);
     if (result.docs.length) {
       this.lastItem = result.docs[result.docs.length - 1];

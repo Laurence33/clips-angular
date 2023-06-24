@@ -56,7 +56,7 @@ export class UploadComponent implements OnDestroy {
     this.storage = getStorage();
     const auth = getAuth();
     this.user = auth.currentUser!;
-    console.log(this.user);
+    // console.log(this.user);
     this.ffmpegService.init();
   }
 
@@ -66,8 +66,8 @@ export class UploadComponent implements OnDestroy {
     this.uploadTask?.cancel();
   }
   async submit(values: any) {
-    console.log(values);
-    console.log(this.uploadForm);
+    // console.log(values);
+    // console.log(this.uploadForm);
     if (this.uploadForm.invalid) {
       return;
     }
@@ -141,7 +141,7 @@ export class UploadComponent implements OnDestroy {
             };
             // Store to Firestore
             const newClip = await this.clipService.createClip(clip);
-            console.log(newClip);
+            // console.log(newClip);
 
             this.resetAlert();
             this.showSuccessAlert(
@@ -193,7 +193,7 @@ export class UploadComponent implements OnDestroy {
     this.file = (event as DragEvent).dataTransfer?.files.item(0)
       ? (event as DragEvent).dataTransfer?.files.item(0) ?? null
       : (event.target as HTMLInputElement).files?.item(0) ?? null;
-    console.log(this.file);
+    // console.log(this.file);
 
     if (!this.file || this.file.type !== 'video/mp4') {
       return;

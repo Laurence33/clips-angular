@@ -20,7 +20,7 @@ export class ModalService {
         id,
         visible: false,
       });
-      console.log(this.modals);
+      // console.log(this.modals);
     }
   }
 

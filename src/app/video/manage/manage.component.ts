@@ -50,7 +50,7 @@ export class ManageComponent implements OnInit {
   async deleteClip(event: Event, clip: IClip) {
     event.preventDefault();
     if (await this.clipService.deleteClip(clip)) {
-      console.log('delete success');
+      // console.log('delete success');
     } else {
       console.log('delete error');
     }

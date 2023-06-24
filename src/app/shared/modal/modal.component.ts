@@ -13,7 +13,7 @@ export class ModalComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.modalService.register(this.modalId);
-    console.log(this.el);
+    // console.log(this.el);
     document.body.appendChild(this.el.nativeElement);
   }
   ngOnDestroy() {
