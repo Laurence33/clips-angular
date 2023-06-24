@@ -6,28 +6,45 @@ import {
   CollectionReference,
   deleteDoc,
   doc,
+  docData,
+  DocumentReference,
   Firestore,
+  getDoc,
+  getDocs,
+  limit,
   orderBy,
   query,
+  QueryDocumentSnapshot,
+  startAfter,
+  startAt,
   updateDoc,
   where,
 } from '@angular/fire/firestore';
 import { IClip } from '../models/clip.model';
 import { Auth } from '@angular/fire/auth';
 import { getAuth } from '@firebase/auth';
-import { Observable, of, switchMap } from 'rxjs';
+import { firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
 import { deleteObject, getStorage, ref, Storage } from '@angular/fire/storage';
+import {
+  Resolve,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot,
+  Router,
+} from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ClipService {
+export class ClipService implements Resolve<IClip | null> {
   clipsCollection: CollectionReference<IClip>;
-
+  pageClips: IClip[] = [];
+  pendingRequest = false;
+  lastItem: QueryDocumentSnapshot<IClip> | null = null;
   constructor(
     private firestore: Firestore,
     private auth: Auth,
-    private storage: Storage
+    private storage: Storage,
+    private router: Router
   ) {
     this.clipsCollection = collection(
       this.firestore,
@@ -85,5 +102,57 @@ export class ClipService {
       console.log(e);
       return false;
     }
+  }
+
+  async getClips() {
+    if (this.pendingRequest) return;
+
+    this.pendingRequest = true;
+    const addToQry = [];
+
+    if (this.lastItem) {
+      addToQry.push(startAfter(this.lastItem));
+    }
+    const qry = query(
+      this.clipsCollection,
+      orderBy('timestamp', 'desc'),
+      limit(6),
+      ...addToQry
+    );
+    console.log('qry', qry);
+    const result = await getDocs(qry);
+    if (result.docs.length) {
+      this.lastItem = result.docs[result.docs.length - 1];
+    }
+    result.docs.map((doc) =>
+      this.pageClips.push({ id: doc.id, ...doc.data() })
+    );
+
+    this.pendingRequest = false;
+    return result;
+    //1. bind() if necessary
+    //2. call()
+  }
+
+  resetClips() {
+    this.pageClips = [];
+    this.lastItem = null;
+  }
+
+  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+    const id = route.params['id'];
+    const docRef = doc(
+      this.firestore,
+      'clips/' + id
+    ) as DocumentReference<IClip>;
+    return docData(docRef, { idField: 'id' }).pipe(
+      map((data) => {
+        if (!data) {
+          this.router.navigate(['/']);
+          return null;
+        }
+        return data;
+      })
+    );
   }
 }
